@@ -1,0 +1,26 @@
+{
+	"name": "stream-utilities",
+	"version": "1.0.0",
+	"description": "a collection of node stream utilities",
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:uwinkelvos/node-stream-utilities.git"
+	},
+	"main": "./lib/stream.js",
+	"scripts": {
+		"compile": "tsc -b ./src ./test-src",
+		"watch": "tsc -b ./src ./test-src -w",
+		"test": "tape './test-lib/**/*.js' | tap-nirvana",
+		"prepare": "npm run compile && npm run test"
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^12.12.24",
+		"@types/tape": "^4.2.33",
+		"tap-nirvana": "^1.1.0",
+		"tape": "^4.13.0",
+		"typescript": "^3.7.4"
+	},
+	"dependencies": {}
+}

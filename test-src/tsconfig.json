@@ -1,0 +1,15 @@
+{
+	"extends": "../tsconfig-base",
+	"compilerOptions": {
+		"outDir": "../test-lib",
+		"rootDir": "./",
+		"declaration": false,
+		"types": []
+	},
+	"include": ["./**/*"],
+	"references": [
+		{
+			"path": "../src"
+		}
+	]
+}

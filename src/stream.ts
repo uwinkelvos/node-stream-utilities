@@ -1,5 +1,6 @@
-import { Transform, TransformOptions, TransformCallback, Readable, Writable } from "stream";
+import { Transform, TransformOptions, TransformCallback, Readable, ReadableOptions, Writable, WritableOptions, PassThrough } from "stream";
 import { EOL } from "os";
+import Assert from "assert";
 
 export class LineBuffered extends Transform {
 	private _buffer = "";
@@ -184,50 +185,37 @@ export class JsonSink extends Transform {
 	}
 }
 
-export function concat([istream, ...rest]: Readable[], ostream: Writable): void {
-	const more = rest.length > 0;
-	istream
-		.on("end", () => {
-			if (more) {
-				concat(rest, ostream);
-			}
-		})
-		.pipe(
-			ostream,
-			{ end: !more }
-		);
+export class Collector<T> extends Writable {
+	public readonly items: T[] = [];
+
+	constructor(opts?: WritableOptions) {
+		super({ ...opts, objectMode: true });
+	}
+
+	public _write(item: T, _: never, callback: (error?: Error | null) => void): void {
+		this.items.push(item);
+		callback(null);
+	}
 }
 
-export function streamToArray<T>(stream: Readable): Promise<T[]> {
-	return new Promise<T[]>(
-		(resolve, reject): void => {
-			const res: T[] = [];
-			stream.on("data", data => {
-				res.push(data);
-			});
-			stream.on("end", () => {
-				resolve(res);
-			});
-			stream.on("error", reject);
-		}
-	);
-}
-
-export function arrayToStream<T>(array: T[], encoding?: string): Readable {
-	let idx = 0;
-	return new Readable({
-		objectMode: encoding === undefined,
-		encoding,
-		read(size) {
-			for (let count = 0; count < size; count++) {
-				if (idx < array.length) {
-					if (!this.push(array[idx++])) {
-						break;
-					}
-				} else {
-					this.push(null);
+export function concat(...streams: Readable[]): Readable {
+	const ostream = new PassThrough({ objectMode: streams[0]?.readableObjectMode });
+	function chain([istream, ...rest]: Readable[]): void {
+		const more = rest.length > 0;
+		istream
+			.on("end", () => {
+				if (more) {
+					chain(rest);
 				}
-			}
-		}
-	});
+			})
+			.on("error", err => {
+				ostream.destroy(err);
+			})
+			.pipe(
+				ostream,
+				{ end: !more }
+			);
+	}
+	chain(streams);
+	return ostream;
 }

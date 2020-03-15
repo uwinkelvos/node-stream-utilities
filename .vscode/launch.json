@@ -10,7 +10,8 @@
 			"name": "Launch Program",
 			"program": "${file}",
 			"sourceMaps": true,
-			"outFiles": ["${workspaceFolder}/lib/**/*.js", "${workspaceFolder}/test-lib/**/*.js"]
+			"outFiles": ["${workspaceFolder}/lib/**/*.js", "${workspaceFolder}/test-lib/**/*.js"],
+			"skipFiles": ["<node_internals>/**/*.js"]
 		}
 	]
 }

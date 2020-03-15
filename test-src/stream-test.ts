@@ -1,47 +1,51 @@
-import Test from "tape";
 import { EOL } from "os";
-import { pipeline } from "stream";
-import { arrayToStream, streamToArray, EolNormalizer, LineBuffered } from "../lib/stream";
+import { promisify } from "util";
+import { pipeline, Readable } from "stream";
+import Test from "tape";
+import { EolNormalizer, LineBuffered, Collector, concat } from "../lib/stream";
+import { range } from "./util";
 
-Test("array_stream_closed_loop", async function(test) {
-	const expected = Array.from({ length: 1e4 }, (_, i) => i);
-	const actual = await streamToArray(arrayToStream(expected));
+Test("collector", async function (test): Promise<void> {
+	const expected = [...range(0, 1e4)];
+	const collector = new Collector<number>();
+	await promisify(pipeline)(
+		Readable.from(expected), collector
+	);
+	const actual = collector.items;
 	test.deepEqual(actual, expected);
-	test.end();
 });
 
-Test("eol_normalizer", async function(test) {
-	const stream = pipeline(
-		arrayToStream(["stuff\r\nmore", "stuff\r", "mostst", "uff\nnomor", "estuff"], "UTF-8"),
+Test("eol_normalizer", async function (test): Promise<void> {
+	const collector = new Collector<string>();
+	await promisify(pipeline)(
+		Readable.from(["stuff\r\nmore", "stuff\r", "mostst", "uff\nnomor", "estuff"], { encoding: "UTF-8" }),
 		new EolNormalizer(),
-		err => {
-			if (err) {
-				test.end(err);
-			} else {
-				test.pass("pipeline should pass!");
-			}
-		}
+		collector
 	);
 	const expected = [`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"];
-	const actual = await streamToArray<string>(stream);
+	const actual = collector.items
 	test.deepEqual(actual, expected);
-	test.end();
 });
 
-Test("eol_normalizer", async function(test) {
-	const stream = pipeline(
-		arrayToStream([`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"], "UTF-8"),
+Test("eol_normalizer", async function (test): Promise<void> {
+	const collector = new Collector<string>();
+	await promisify(pipeline)(
+		Readable.from([`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"], { encoding: "UTF-8" }),
 		new LineBuffered(),
-		err => {
-			if (err) {
-				test.end(err);
-			} else {
-				test.pass("pipeline should pass!");
-			}
-		}
+		collector
 	);
 	const expected = ["stuff", "morestuff", "moststuff", "nomorestuff"];
-	const actual = await streamToArray<string>(stream);
+	const actual = collector.items;
 	test.deepEqual(actual, expected);
-	test.end();
+});
+
+Test("concat", async function (test): Promise<void> {
+	const expected = [...range(0, 4)];
+	const collector = new Collector<number>();
+	await promisify(pipeline)(
+		concat(Readable.from(expected.slice(0, 2)), Readable.from(expected.slice(2, 4))),
+		collector
+	);
+	const actual = collector.items;
+	test.deepEqual(actual, expected);
 });

@@ -4,9 +4,18 @@
 		"outDir": "../test-lib",
 		"rootDir": "./",
 		"declaration": false,
-		"types": []
+		"types": [
+			"node",
+			"tap"
+		],
+		"typeRoots": [
+			"../node_modules/@types",
+			"../typings"
+		]
 	},
-	"include": ["./**/*"],
+	"include": [
+		"./**/*"
+	],
 	"references": [
 		{
 			"path": "../src"

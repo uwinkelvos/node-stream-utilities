@@ -10,13 +10,11 @@
 			"name": "Launch Program",
 			"program": "${file}",
 			"sourceMaps": true,
-			"outFiles": [
-				"${workspaceFolder}/lib/**/*.js",
-				"${workspaceFolder}/test-lib/**/*.js"
-			],
-			"skipFiles": [
-				"<node_internals>/**/*.js"
-			],
+			"runtimeArgs": ["--require=source-map-support/register"],
+			"runtimeVersion": "16",
+			"preLaunchTask": "tsc:watch",
+			"outFiles": ["${workspaceFolder}/lib/**/*.js"],
+			"skipFiles": ["<node_internals>/**/*.js"],
 			"console": "integratedTerminal"
 		}
 	]

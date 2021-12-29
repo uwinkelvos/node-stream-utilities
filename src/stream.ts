@@ -1,6 +1,14 @@
-import { Transform, TransformOptions, TransformCallback, Readable, ReadableOptions, Writable, WritableOptions, PassThrough } from "stream";
+import {
+	Transform,
+	TransformOptions,
+	TransformCallback,
+	Readable,
+	ReadableOptions,
+	Writable,
+	WritableOptions,
+	PassThrough,
+} from "stream";
 import { EOL } from "os";
-import Assert from "assert";
 
 export class LineBuffered extends Transform {
 	private _buffer = "";
@@ -8,10 +16,10 @@ export class LineBuffered extends Transform {
 		super({
 			...options,
 			decodeStrings: false,
-			encoding: "UTF-8"
+			encoding: "utf-8",
 		});
 	}
-	_transform(data: any, _: string, callback: TransformCallback): void {
+	public override _transform(data: any, _: string, callback: TransformCallback): void {
 		if (typeof data !== "string") {
 			callback(new Error('typeof data !== "string"'));
 			return;
@@ -26,7 +34,7 @@ export class LineBuffered extends Transform {
 		}
 		callback();
 	}
-	_flush(callback: TransformCallback) {
+	public override _flush(callback: TransformCallback) {
 		this.push(this._buffer);
 		callback();
 	}
@@ -37,10 +45,10 @@ export class EolNormalizer extends Transform {
 		super({
 			...options,
 			decodeStrings: false,
-			encoding: "UTF-8"
+			encoding: "utf-8",
 		});
 	}
-	_transform(data: any, _: string, callback: TransformCallback): void {
+	public override _transform(data: any, _: string, callback: TransformCallback): void {
 		if (typeof data !== "string") {
 			callback(new Error('typeof data !== "string"'));
 			return;
@@ -54,10 +62,10 @@ export class RegExpMatcher extends Transform {
 		super({
 			...options,
 			decodeStrings: false,
-			readableObjectMode: true
+			readableObjectMode: true,
 		});
 	}
-	_transform(data: any, _: string, callback: TransformCallback): void {
+	public override _transform(data: any, _: string, callback: TransformCallback): void {
 		if (typeof data !== "string") {
 			callback(new Error('typeof data !== "string"'));
 			return;
@@ -76,10 +84,10 @@ export class RegExpDecoder<T extends object> extends Transform {
 		super({
 			...options,
 			decodeStrings: false,
-			readableObjectMode: true
+			readableObjectMode: true,
 		});
 	}
-	_transform(data: any, _: string, callback: TransformCallback): void {
+	public override _transform(data: any, _: string, callback: TransformCallback): void {
 		if (typeof data !== "string") {
 			callback(new Error('typeof data !== "string"'));
 			return;
@@ -101,10 +109,10 @@ export class MapStream<F, T> extends Transform {
 	constructor(private readonly _mapFunction: (obj: F) => T, options: TransformOptions = {}) {
 		super({
 			...options,
-			objectMode: true
+			objectMode: true,
 		});
 	}
-	_transform(data: F, _: string, callback: TransformCallback): void {
+	public override _transform(data: F, _: string, callback: TransformCallback): void {
 		callback(undefined, this._mapFunction(data));
 	}
 }
@@ -113,10 +121,10 @@ export class FilterStream<T> extends Transform {
 	constructor(private readonly _filterFunction: (obj: T) => boolean, options: TransformOptions = {}) {
 		super({
 			...options,
-			objectMode: true
+			objectMode: true,
 		});
 	}
-	_transform(data: T, _: string, callback: TransformCallback): void {
+	public override _transform(data: T, _: string, callback: TransformCallback): void {
 		if (this._filterFunction(data)) {
 			callback(undefined, data);
 		} else {
@@ -131,10 +139,10 @@ export class CsvSink extends Transform {
 		super({
 			...options,
 			writableObjectMode: true,
-			encoding: "UTF-8"
+			encoding: "utf-8",
 		});
 	}
-	_transform(data: object, _: string, callback: TransformCallback): void {
+	public override _transform(data: object, _: string, callback: TransformCallback): void {
 		if (typeof data !== "object") {
 			callback(new Error('typeof data !== "object"'));
 			return;
@@ -149,7 +157,7 @@ export class CsvSink extends Transform {
 				return;
 			}
 		}
-		const strings = Object.values(data).map(obj => (obj instanceof Date ? obj.toISOString() : obj));
+		const strings = Object.values(data).map((obj) => (obj instanceof Date ? obj.toISOString() : obj));
 		const csv = strings.join(this._delim) + EOL;
 		callback(undefined, csv);
 	}
@@ -160,10 +168,10 @@ export class PlainSink extends Transform {
 		super({
 			...options,
 			writableObjectMode: true,
-			encoding: "UTF-8"
+			encoding: "utf-8",
 		});
 	}
-	_transform(data: string, _: string, callback: TransformCallback): void {
+	public override _transform(data: string, _: string, callback: TransformCallback): void {
 		if (typeof data !== "string") {
 			callback(new Error('typeof data !== "string"'));
 			return;
@@ -177,10 +185,10 @@ export class JsonSink extends Transform {
 		super({
 			...options,
 			writableObjectMode: true,
-			encoding: "UTF-8"
+			encoding: "utf-8",
 		});
 	}
-	_transform(data: any, _: string, callback: TransformCallback): void {
+	public override _transform(data: any, _: string, callback: TransformCallback): void {
 		callback(undefined, JSON.stringify(data) + EOL);
 	}
 }
@@ -192,7 +200,7 @@ export class Collector<T> extends Writable {
 		super({ ...opts, objectMode: true });
 	}
 
-	public _write(item: T, _: never, callback: (error?: Error | null) => void): void {
+	public override _write(item: T, _: never, callback: (error?: Error | null) => void): void {
 		this.items.push(item);
 		callback(null);
 	}
@@ -208,13 +216,10 @@ export function concat(...streams: Readable[]): Readable {
 					chain(rest);
 				}
 			})
-			.on("error", err => {
+			.on("error", (err) => {
 				ostream.destroy(err);
 			})
-			.pipe(
-				ostream,
-				{ end: !more }
-			);
+			.pipe(ostream, { end: !more });
 	}
 	chain(streams);
 	return ostream;

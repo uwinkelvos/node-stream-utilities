@@ -1,45 +1,45 @@
 import { EOL } from "os";
 import { promisify } from "util";
 import { pipeline, Readable } from "stream";
-import { test as Test } from "tap";
-import { EolNormalizer, LineBuffered, Collector, concat } from "../lib/stream";
+import { deepEqual } from "assert/strict";
+import { suite } from "uvu";
+import { EolNormalizer, LineBuffered, Collector, concat } from "../stream";
 import { range } from "./util";
 
-Test("collector", async (tap): Promise<void> => {
+const test = suite("stream");
+test("collector", async (): Promise<void> => {
 	const expected = [...range(0, 1e4)];
 	const collector = new Collector<number>();
-	await promisify(pipeline)(
-		Readable.from(expected), collector
-	);
+	await promisify(pipeline)(Readable.from(expected), collector);
 	const actual = collector.items;
-	tap.deepEqual(actual, expected);
+	deepEqual(actual, expected);
 });
 
-Test("eol_normalizer", async (tap): Promise<void> => {
+test("eol_normalizer", async (): Promise<void> => {
 	const collector = new Collector<string>();
 	await promisify(pipeline)(
-		Readable.from(["stuff\r\nmore", "stuff\r", "mostst", "uff\nnomor", "estuff"], { encoding: "UTF-8" }),
+		Readable.from(["stuff\r\nmore", "stuff\r", "mostst", "uff\nnomor", "estuff"], { encoding: "utf-8" }),
 		new EolNormalizer(),
 		collector
 	);
 	const expected = [`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"];
-	const actual = collector.items
-	tap.deepEqual(actual, expected);
+	const actual = collector.items;
+	deepEqual(actual, expected);
 });
 
-Test("eol_normalizer", async (tap): Promise<void> => {
+test("eol_normalizer", async (): Promise<void> => {
 	const collector = new Collector<string>();
 	await promisify(pipeline)(
-		Readable.from([`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"], { encoding: "UTF-8" }),
+		Readable.from([`stuff${EOL}more`, `stuff${EOL}`, "mostst", `uff${EOL}nomor`, "estuff"], { encoding: "utf-8" }),
 		new LineBuffered(),
 		collector
 	);
 	const expected = ["stuff", "morestuff", "moststuff", "nomorestuff"];
 	const actual = collector.items;
-	tap.deepEqual(actual, expected);
+	deepEqual(actual, expected);
 });
 
-Test("concat", async (tap): Promise<void> => {
+test("concat", async (): Promise<void> => {
 	const expected = [...range(0, 4)];
 	const collector = new Collector<number>();
 	await promisify(pipeline)(
@@ -47,5 +47,7 @@ Test("concat", async (tap): Promise<void> => {
 		collector
 	);
 	const actual = collector.items;
-	tap.deepEqual(actual, expected);
+	deepEqual(actual, expected);
 });
+
+test.run();

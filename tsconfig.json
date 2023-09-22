@@ -1,15 +1,14 @@
 {
-	"extends": "@tsconfig/node16/tsconfig.json",
+	"extends": "@tsconfig/node20/tsconfig.json",
 	"compilerOptions": {
-		"exactOptionalPropertyTypes": true,
-		"noImplicitOverride": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"removeComments": true,
 		"declaration": true,
 		"sourceMap": true,
 		"outDir": "./lib/",
-		"rootDir": "./src/"
+		"rootDir": "./src/",
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"removeComments": true
 	},
 	"include": ["./src/"]
 }

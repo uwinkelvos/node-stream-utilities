@@ -3,12 +3,11 @@ import {
 	TransformOptions,
 	TransformCallback,
 	Readable,
-	ReadableOptions,
 	Writable,
 	WritableOptions,
 	PassThrough,
-} from "stream";
-import { EOL } from "os";
+} from "node:stream";
+import { EOL } from "node:os";
 
 export class LineBuffered extends Transform {
 	private _buffer = "";
@@ -27,7 +26,8 @@ export class LineBuffered extends Transform {
 		const lines = data.split(EOL);
 		if (lines.length > 0) {
 			while (lines.length > 1) {
-				this.push(this._buffer + lines.shift());
+				const currentLine = `${this._buffer}${lines.shift()}${EOL}`;
+				this.push(currentLine);
 				this._buffer = "";
 			}
 			this._buffer += lines.shift();

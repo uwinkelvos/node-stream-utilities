@@ -4,7 +4,7 @@ import { EOL } from "node:os";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { EolNormalizer, LineBuffered, Collector, concat } from "../stream.js";
-import { range, asyncRange } from "./util.js";
+import { range, asyncRange } from "../test-utils/util.js";
 
 describe("collector", () => {
 	test("collects readable stream items in array", async (): Promise<void> => {
